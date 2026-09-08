@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento Semanal Casos de Garantía - Corey Solar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS Excel Parser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#e6f3f1',
+                            100: '#cce7e3',
+                            500: '#00473e',
+                            600: '#003a33',
+                            700: '#002e28',
+                            800: '#00211d',
+                            900: '#001412'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- HEADER -->
+    <header class="bg-[#00473e] text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-white/10 rounded-xl backdrop-blur-md border border-white/20">
+                    <i data-lucide="shield-check" class="w-7 h-7 text-emerald-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Seguimiento Semanal Casos de Garantía</h1>
+                    <p class="text-xs text-emerald-100/80 font-light flex items-center gap-1.5">
+                        <span>Soporte Técnico | Corey Solar</span>
+                        <span>•</span>
+                        <span class="inline-flex items-center text-emerald-300 font-medium">Casos activos</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Current Week Indicator Box -->
+                <div class="bg-emerald-950/40 border border-emerald-400/30 rounded-xl px-3.5 py-1.5 flex items-center gap-2.5 text-xs shadow-inner">
+                    <i data-lucide="calendar" class="w-4 h-4 text-emerald-300"></i>
+                    <div>
+                        <div class="text-[10px] text-emerald-200 uppercase tracking-wider font-semibold">TIEMPO ACTUAL</div>
+                        <div class="font-bold text-white text-sm" id="header-week-indicator">Semana -- | ----</div>
+                    </div>
+                </div>
+
+                <!-- Google Sheets Live Sync Button -->
+                <button onclick="syncGoogleSheets(false)" class="bg-emerald-300 hover:bg-emerald-200 text-[#00473e] active:scale-95 transition font-semibold px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 shadow-sm border border-emerald-200" title="Sincronizar datos en vivo desde Google Sheets">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 text-[#00473e]" id="sync-header-icon"></i>
+                    <span id="sync-header-label">Sincronizar Sheets</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow space-y-6 w-full">
+
+        <!-- KPI METRICS ROW (4 CARDS) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">CASOS ACTIVOS TOTALES</span>
+                    <div class="text-2xl font-extrabold text-[#00473e] mt-0.5" id="kpi-total-active">0</div>
+                    <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                        <i data-lucide="filter" class="w-3 h-3 text-emerald-600"></i> Excluye cerradas/canceladas
+                    </p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#00473e]">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-red-50 to-rose-100/80 rounded-2xl p-4 border border-red-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-700">CASOS &gt; 10 DÍAS</span>
+                    <div class="text-2xl font-black text-red-600 mt-0.5" id="kpi-over-10-days">0</div>
+                    <p class="text-[11px] text-red-500 font-medium mt-0.5 flex items-center gap-1">
+                        <i data-lucide="alert-triangle" class="w-3 h-3 text-red-600"></i> Atención prioritaria
+                    </p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-md shadow-red-200 animate-pulse-subtle">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">CASOS INGRESADOS</span>
+                    <div class="text-2xl font-extrabold text-blue-600 mt-0.5" id="kpi-ingresados">0</div>
+                    <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                        <i data-lucide="calendar" class="w-3 h-3 text-blue-500"></i> Ingresos de la semana
+                    </p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                    <i data-lucide="inbox" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">GARANTÍAS CERRADAS</span>
+                    <div class="text-2xl font-extrabold text-slate-700 mt-0.5" id="kpi-cerradas">0</div>
+                    <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                        <i data-lucide="check-circle-2" class="w-3 h-3 text-slate-500"></i> Cancelada, Cerrada o Rechazada
+                    </p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+                    <i data-lucide="archive" class="w-5 h-5"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- FILTER BAR SECTION -->
+        <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="sliders-horizontal" class="w-5 h-5 text-[#00473e]"></i>
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Filtros Dinámicos de Selección</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="filter-status-counter" class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                        Mostrando 0 de 0 casos activos
+                    </span>
+                    <button onclick="clearFilters()" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 transition">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Limpiar Filtros</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">BUSCAR FOLIO / CLIENTE</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Ej: CS-2026-001..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">MES DE INGRESO (B)</label>
+                    <select id="filter-month" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
+                        <option value="">Todos los meses</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">MARCA (G)</label>
+                    <select id="filter-brand" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
+                        <option value="">Todas las marcas</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ASESOR (AD)</label>
+                    <select id="filter-advisor" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
+                        <option value="">Todos los asesores</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">STATUS ACTIVO (AE)</label>
+                    <select id="filter-status" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
+                        <option value="">Todos los estatus activos</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHARTS ROW -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#00473e]"></i>
+                        Estatus de Casos Activos (AE)
+                    </h3>
+                    <span class="text-[10px] font-medium text-slate-400">Haz clic en una barra para detalles</span>
+                </div>
+                <div class="h-60 relative">
+                    <canvas id="chart-status"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-[#00473e]"></i>
+                        Casos Activos por Asesor (AD)
+                    </h3>
+                </div>
+                <div class="h-60 relative">
+                    <canvas id="chart-advisor"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- LISTADO GENERAL DE CASOS ACTIVOS -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="table" class="w-5 h-5 text-[#00473e]"></i>
+                        Listado General de Casos Activos
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Vista detallada de casos de garantía activos</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 text-xs font-medium">
+                    <span class="text-slate-500 font-semibold mr-1">Ordenar por:</span>
+                    <button onclick="toggleSort('folio')" id="sort-folio-btn" class="bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                        <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-[#00473e]"></i>
+                        <span id="sort-folio-btn-label">Folio</span>
+                    </button>
+                    <button onclick="toggleSort('advisor')" id="sort-advisor-btn" class="bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition mr-2">
+                        <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-[#00473e]"></i>
+                        <span id="sort-advisor-btn-label">Asesor</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-[#00473e] text-white font-semibold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                            <th class="py-3 px-3 cursor-pointer hover:bg-[#003730] transition select-none" onclick="sortTable1('folio')">
+                                <div class="flex items-center gap-1">
+                                    <span>Folio</span>
+                                    <i id="t1-sort-icon-folio" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-emerald-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-3 cursor-pointer hover:bg-[#003730] transition select-none" onclick="sortTable1('razonSocial')">
+                                <div class="flex items-center gap-1">
+                                    <span>Razón Social</span>
+                                    <i id="t1-sort-icon-razonSocial" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-emerald-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-3 cursor-pointer hover:bg-[#003730] transition select-none" onclick="sortTable1('asesor')">
+                                <div class="flex items-center gap-1">
+                                    <span>Asesor</span>
+                                    <i id="t1-sort-icon-asesor" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-emerald-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-3 cursor-pointer hover:bg-[#003730] transition select-none" onclick="sortTable1('marca')">
+                                <div class="flex items-center gap-1">
+                                    <span>Marca</span>
+                                    <i id="t1-sort-icon-marca" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-emerald-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-3 cursor-pointer hover:bg-[#003730] transition select-none" onclick="sortTable1('comentarios')">
+                                <div class="flex items-center gap-1">
+                                    <span>Comentarios</span>
+                                    <i id="t1-sort-icon-comentarios" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-emerald-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-3 cursor-pointer hover:bg-[#003730] transition select-none" onclick="sortTable1('status')">
+                                <div class="flex items-center gap-1">
+                                    <span>Estatus</span>
+                                    <i id="t1-sort-icon-status" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-emerald-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cases-table-body" class="divide-y divide-slate-200 bg-white">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+                <div id="pagination-info">Mostrando 0 registros</div>
+                <div class="flex items-center space-x-2" id="pagination-controls"></div>
+            </div>
+        </section>
+
+        <!-- TABLA 1: CASOS CRÍTICOS EN ST -->
+        <section class="bg-gradient-to-b from-amber-50 to-orange-50/40 rounded-2xl border-2 border-amber-500/40 shadow-md overflow-hidden flex flex-col">
+            <div class="p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-white/10 rounded-xl border border-white/20 shadow-sm">
+                        <i data-lucide="clock" class="w-6 h-6 text-amber-200 animate-pulse"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-extrabold tracking-wide text-white uppercase flex items-center gap-2">
+                            Casos Críticos en ST
+                        </h2>
+                        <p class="text-xs text-amber-100 font-light">
+                            Casos pendientes de resolución de ST de Corey Solar
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-3.5 py-1 bg-white text-amber-800 font-black text-xs rounded-full shadow border border-amber-200 flex items-center gap-1.5">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i>
+                        <span id="critical-table1-count">0 Casos en ST</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-amber-900 text-amber-100 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap border-b border-amber-800">
+                            <th class="py-3 px-4 cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('folio')">
+                                <div class="flex items-center gap-1">
+                                    <span>Folio</span>
+                                    <i id="t1c-sort-icon-folio" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 max-w-[180px] cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('razonSocial')">
+                                <div class="flex items-center gap-1">
+                                    <span>Razón Social</span>
+                                    <i id="t1c-sort-icon-razonSocial" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('asesor')">
+                                <div class="flex items-center gap-1">
+                                    <span>Asesor</span>
+                                    <i id="t1c-sort-icon-asesor" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('days')">
+                                <div class="flex items-center justify-center gap-1">
+                                    <span>Días de Ingreso</span>
+                                    <i id="t1c-sort-icon-days" data-lucide="arrow-down" class="w-3.5 h-3.5 text-white font-bold"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="critical-table1-body" class="divide-y divide-amber-200/80 bg-white">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="critical-table1-footer" class="p-2.5 bg-amber-100/50 border-t border-amber-200 text-xs text-amber-800 text-right font-medium pr-4">
+                Mostrando 0 casos
+            </div>
+        </section>
+
+        <!-- TABLA 2: CASOS CRÍTICOS PENDIENTES -->
+        <section class="bg-gradient-to-b from-red-50 to-rose-50/40 rounded-2xl border-2 border-red-500/40 shadow-md overflow-hidden flex flex-col">
+            <div class="p-4 bg-gradient-to-r from-red-700 via-rose-700 to-red-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-white/10 rounded-xl border border-white/20 shadow-sm">
+                        <i data-lucide="siren" class="w-6 h-6 text-red-200 animate-pulse"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-extrabold tracking-wide text-white uppercase flex items-center gap-2">
+                            Casos Críticos pendientes
+                        </h2>
+                        <p class="text-xs text-red-100 font-light">
+                            Casos pendientes (Resolución fabricante / envío proveedor / disponibilidad)
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-3.5 py-1 bg-white text-red-800 font-black text-xs rounded-full shadow border border-red-200 flex items-center gap-1.5">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-600"></i>
+                        <span id="critical-table2-count">0 Casos Pendientes</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-red-900 text-red-100 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap border-b border-red-800">
+                            <th class="py-3 px-4 cursor-pointer hover:bg-red-950 transition select-none" onclick="sortCriticalTable2('folio')">
+                                <div class="flex items-center gap-1">
+                                    <span>Folio</span>
+                                    <i id="t2c-sort-icon-folio" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-red-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 max-w-[180px] cursor-pointer hover:bg-red-950 transition select-none" onclick="sortCriticalTable2('razonSocial')">
+                                <div class="flex items-center gap-1">
+                                    <span>Razón Social</span>
+                                    <i id="t2c-sort-icon-razonSocial" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-red-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-red-950 transition select-none" onclick="sortCriticalTable2('asesor')">
+                                <div class="flex items-center gap-1">
+                                    <span>Asesor</span>
+                                    <i id="t2c-sort-icon-asesor" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-red-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center cursor-pointer hover:bg-red-950 transition select-none" onclick="sortCriticalTable2('fechaCierreST')">
+                                <div class="flex items-center justify-center gap-1">
+                                    <span>Fecha Cierre ST</span>
+                                    <i id="t2c-sort-icon-fechaCierreST" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-red-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center cursor-pointer hover:bg-red-950 transition select-none" onclick="sortCriticalTable2('days')">
+                                <div class="flex items-center justify-center gap-1">
+                                    <span>Días de Ingreso</span>
+                                    <i id="t2c-sort-icon-days" data-lucide="arrow-down" class="w-3.5 h-3.5 text-white font-bold"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="critical-table2-body" class="divide-y divide-red-200/80 bg-white">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="critical-table2-footer" class="p-2.5 bg-red-100/50 border-t border-red-200 text-xs text-red-800 text-right font-medium pr-4">
+                Mostrando 0 casos
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CASE DETAILS MODAL -->
+    <div id="case-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200 transform transition-all">
+            <div class="bg-[#00473e] text-white p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="file-text" class="w-5 h-5 text-emerald-300"></i>
+                    <h3 class="font-bold text-base" id="modal-title">Detalle del Caso de Garantía</h3>
+                </div>
+                <button onclick="closeModal()" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar" id="modal-content">
+            </div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-semibold transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS CASES LIST MODAL -->
+    <div id="status-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 transform transition-all">
+            <div class="bg-[#00473e] text-white p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="list-checks" class="w-5 h-5 text-emerald-300"></i>
+                    <h3 class="font-bold text-sm" id="status-modal-title">Casos por Estatus</h3>
+                </div>
+                <button onclick="closeStatusModal()" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar" id="status-modal-list">
+            </div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeStatusModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-semibold transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GOOGLE SHEETS LIVE CONFIG MODAL -->
+    <div id="gsheets-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 transform transition-all">
+            <div class="bg-[#00473e] text-white p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="link" class="w-5 h-5 text-emerald-300"></i>
+                    <h3 class="font-bold text-base">Conexión en Vivo con Google Sheets</h3>
+                </div>
+                <button onclick="closeGoogleSheetModal()" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4 text-xs">
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 flex items-start gap-2.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                    <p class="leading-relaxed">
+                        <strong>Conexión JSONP / Bypass CORS Activado:</strong> Sincronización directa desde Google Sheets.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1">ID del Documento o URL Completa de Google Sheets</label>
+                    <input type="text" id="gs-sheet-id" placeholder="URL o ID de Google Sheets..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#00473e] outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre Exacto de la Hoja</label>
+                    <input type="text" id="gs-sheet-name" value="GARANTIA" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#00473e] outline-none font-bold text-[#00473e]">
+                </div>
+
+                <div id="gs-status-message" class="hidden p-2.5 rounded-xl text-center font-medium"></div>
+            </div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="closeGoogleSheetModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-semibold transition">
+                    Cancelar
+                </button>
+                <button onclick="syncGoogleSheets()" id="gs-sync-btn" class="px-4 py-2 bg-[#00473e] hover:bg-[#003831] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    <span>Sincronizar Datos</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA -->
+    <script>
+        const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1gOwczatiVLGeOoxm9f7CnwPctCvyRKXSKlJMUjHqYTE/edit?gid=1402667917#gid=1402667917';
+
+        /* Global State Variables */
+        let allRawCases = [];
+        let rawCases = [];
+        let filteredCases = [];
+        
+        /* Table Sort States */
+        let table1Sort = { field: null, direction: 'asc' };
+        let criticalTable1Sort = { field: 'days', direction: 'desc' };
+        let criticalTable2Sort = { field: 'days', direction: 'desc' };
+
+        /* Chart Instances */
+        let chartStatusInstance = null;
+        let chartAdvisorInstance = null;
+
+        function getWeekAndYear(date) {
+            if (!date || isNaN(date.getTime())) return { week: null, year: null };
+            const temp = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const startOfYear = new Date(temp.getFullYear(), 0, 1);
+            const pastDaysOfYear = (temp - startOfYear) / 86400000;
+            const week = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+            const year = temp.getFullYear();
+            return { week, year };
+        }
+
+        function parseDateString(val) {
+            if (!val) return null;
+            if (typeof val === 'number') {
+                return new Date((val - (25567 + 2)) * 86400 * 1000);
+            }
+            const str = String(val).trim();
+            if (!str || str === '-') return null;
+
+            if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+                const parts = str.split('T')[0].split('-');
+                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            }
+            if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{4}/.test(str)) {
+                const parts = str.split(/[\/-]/);
+                return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            }
+            
+            const parsed = new Date(str);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function calculateDaysSinceEntry(item) {
+            const entryDate = parseDateString(item.rawFechaIngreso || item.fechaIngreso);
+            if (entryDate && !isNaN(entryDate.getTime())) {
+                const now = new Date();
+                const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const entryMidnight = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                const diffTime = todayMidnight - entryMidnight;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 ? diffDays : 0;
+            }
+            return Math.round(item.diasST || 0);
+        }
+
+        function isStDatePast(item) {
+            const closeDate = parseDateString(item.fechaCierreST);
+            if (!closeDate || isNaN(closeDate.getTime())) return false;
+            const now = new Date();
+            const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const closeMidnight = new Date(closeDate.getFullYear(), closeDate.getMonth(), closeDate.getDate());
+            return closeMidnight < todayMidnight;
+        }
+
+        function isClosedStatus(statusStr) {
+            if (!statusStr) return false;
+            const s = String(statusStr).toLowerCase();
+            return s.includes('cerrad') || s.includes('cancelad') || s.includes('rechazad');
+        }
+
+        function isCaseActiveOrDeliveredThisWeek(item) {
+            const isClosedOrFinal = isClosedStatus(item.status) || (item.status || '').toLowerCase().includes('entregad');
+            const deliveryDate = parseDateString(item.rawFechaEntregaCli || item.fechaEntregaCli);
+            const nowWeek = getWeekAndYear(new Date());
+            const deliveryWeek = getWeekAndYear(deliveryDate);
+
+            const isThisWeekDelivery = (deliveryWeek.week !== null && 
+                                        deliveryWeek.week === nowWeek.week && 
+                                        deliveryWeek.year === nowWeek.year);
+
+            if (!isClosedOrFinal) return true;
+            return isThisWeekDelivery;
+        }
+
+        function parseStatuses(statusStr) {
+            if (!statusStr) return ['Sin Estatus'];
+            return String(statusStr).split(/[,/;]+/).map(s => s.trim()).filter(Boolean);
+        }
+
+        function fillSelect(elementId, items, defaultText) {
+            const select = document.getElementById(elementId);
+            if (!select) return;
+            const currentVal = select.value;
+            let optionsHTML = `<option value="">${defaultText}</option>`;
+            items.forEach(item => {
+                optionsHTML += `<option value="${escapeHTML(item)}">${escapeHTML(item)}</option>`;
+            });
+            select.innerHTML = optionsHTML;
+            if (items.includes(currentVal)) {
+                select.value = currentVal;
+            }
+        }
+
+        /* Sort Functions */
+        function sortTable1(field) {
+            if (table1Sort.field === field) {
+                table1Sort.direction = table1Sort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                table1Sort.field = field;
+                table1Sort.direction = 'asc';
+            }
+            updateSortUI();
+            applyFilters();
+        }
+
+        function sortCriticalTable1(field) {
+            if (criticalTable1Sort.field === field) {
+                criticalTable1Sort.direction = criticalTable1Sort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                criticalTable1Sort.field = field;
+                criticalTable1Sort.direction = field === 'days' ? 'desc' : 'asc';
+            }
+            updateSortUI();
+            renderCriticalTable1();
+        }
+
+        function sortCriticalTable2(field) {
+            if (criticalTable2Sort.field === field) {
+                criticalTable2Sort.direction = criticalTable2Sort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                criticalTable2Sort.field = field;
+                criticalTable2Sort.direction = field === 'days' ? 'desc' : 'asc';
+            }
+            updateSortUI();
+            renderCriticalTable2();
+        }
+
+        function toggleSort(field) {
+            sortTable1(field);
+        }
+
+        function updateSortUI() {
+            const folioBtn = document.getElementById('sort-folio-btn');
+            const folioLabel = document.getElementById('sort-folio-btn-label');
+            const advisorBtn = document.getElementById('sort-advisor-btn');
+            const advisorLabel = document.getElementById('sort-advisor-btn-label');
+
+            if (folioBtn) folioBtn.className = 'bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition';
+            if (advisorBtn) advisorBtn.className = 'bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition mr-2';
+            if (folioLabel) folioLabel.textContent = 'Folio';
+            if (advisorLabel) advisorLabel.textContent = 'Asesor';
+
+            if (table1Sort.field === 'folio') {
+                if (folioLabel) folioLabel.textContent = `Folio (${table1Sort.direction === 'asc' ? 'Asc' : 'Desc'})`;
+                if (folioBtn) folioBtn.className = 'bg-emerald-50 border border-emerald-300 text-[#00473e] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition';
+            } else if (table1Sort.field === 'asesor') {
+                if (advisorLabel) advisorLabel.textContent = `Asesor (${table1Sort.direction === 'asc' ? 'A-Z' : 'Z-A'})`;
+                if (advisorBtn) advisorBtn.className = 'bg-emerald-50 border border-emerald-300 text-[#00473e] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition mr-2';
+            }
+
+            const t1Fields = ['folio', 'razonSocial', 'asesor', 'marca', 'comentarios', 'status'];
+            t1Fields.forEach(f => {
+                const icon = document.getElementById(`t1-sort-icon-${f}`);
+                if (!icon) return;
+                if (table1Sort.field === f) {
+                    icon.setAttribute('data-lucide', table1Sort.direction === 'asc' ? 'arrow-up' : 'arrow-down');
+                    icon.className = 'w-3.5 h-3.5 text-emerald-200 font-bold opacity-100';
+                } else {
+                    icon.setAttribute('data-lucide', 'arrow-up-down');
+                    icon.className = 'w-3.5 h-3.5 text-emerald-300 opacity-60';
+                }
+            });
+
+            const t1cFields = ['folio', 'razonSocial', 'asesor', 'days'];
+            t1cFields.forEach(f => {
+                const icon = document.getElementById(`t1c-sort-icon-${f}`);
+                if (!icon) return;
+                if (criticalTable1Sort.field === f) {
+                    icon.setAttribute('data-lucide', criticalTable1Sort.direction === 'asc' ? 'arrow-up' : 'arrow-down');
+                    icon.className = 'w-3.5 h-3.5 text-white font-bold opacity-100';
+                } else {
+                    icon.setAttribute('data-lucide', 'arrow-up-down');
+                    icon.className = 'w-3.5 h-3.5 text-amber-300 opacity-60';
+                }
+            });
+
+            const t2cFields = ['folio', 'razonSocial', 'asesor', 'fechaCierreST', 'days'];
+            t2cFields.forEach(f => {
+                const icon = document.getElementById(`t2c-sort-icon-${f}`);
+                if (!icon) return;
+                if (criticalTable2Sort.field === f) {
+                    icon.setAttribute('data-lucide', criticalTable2Sort.direction === 'asc' ? 'arrow-up' : 'arrow-down');
+                    icon.className = 'w-3.5 h-3.5 text-white font-bold opacity-100';
+                } else {
+                    icon.setAttribute('data-lucide', 'arrow-up-down');
+                    icon.className = 'w-3.5 h-3.5 text-red-300 opacity-60';
+                }
+            });
+
+            lucide.createIcons();
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-month').value = '';
+            document.getElementById('filter-brand').value = '';
+            document.getElementById('filter-advisor').value = '';
+            document.getElementById('filter-status').value = '';
+
+            table1Sort = { field: null, direction: 'asc' };
+            criticalTable1Sort = { field: 'days', direction: 'desc' };
+            criticalTable2Sort = { field: 'days', direction: 'desc' };
+            updateSortUI();
+            applyFilters();
+        }
+
+        window.onload = function() {
+            lucide.createIcons();
+            updateCurrentWeekIndicator();
+            const gsInput = document.getElementById('gs-sheet-id');
+            if (gsInput) gsInput.value = DEFAULT_SHEET_URL;
+            syncGoogleSheets(true);
+        };
+
+        function openGoogleSheetModal() {
+            document.getElementById('gsheets-modal').classList.remove('hidden');
+        }
+
+        function closeGoogleSheetModal() {
+            document.getElementById('gsheets-modal').classList.add('hidden');
+        }
+
+        function extractSpreadsheetInfo(input) {
+            if (!input) return { spreadsheetId: '', gid: '', directUrl: '' };
+            const str = input.trim();
+            if (str.startsWith('http') && (str.includes('/pub?') || str.includes('output=csv'))) {
+                return { spreadsheetId: '', gid: '', directUrl: str };
+            }
+            const idMatch = str.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            const spreadsheetId = idMatch ? idMatch[1] : (str.includes('/') ? '' : str);
+            const gidMatch = str.match(/gid=([0-9]+)/);
+            const gid = gidMatch ? gidMatch[1] : '';
+            return { spreadsheetId, gid, directUrl: '' };
+        }
+
+        function fetchViaJsonp(spreadsheetId, sheetName, gid) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'gviz_cb_' + Math.floor(Math.random() * 10000000);
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('Tiempo de espera agotado en Google Sheets.'));
+                }, 8000);
+
+                function cleanup() {
+                    clearTimeout(timeout);
+                    delete window[callbackName];
+                    const sc = document.getElementById(callbackName);
+                    if (sc) sc.remove();
+                }
+
+                window[callbackName] = function(response) {
+                    cleanup();
+                    if (response && response.status === 'error') {
+                        reject(new Error(response.errors?.[0]?.detailed_message || 'Error de Google Sheets.'));
+                    } else if (response && response.table) {
+                        resolve(response.table);
+                    } else {
+                        reject(new Error('Estructura de respuesta no válida.'));
+                    }
+                };
+
+                let url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=responseHandler:${callbackName}`;
+                if (gid) url += `&gid=${gid}`;
+                else if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
+
+                const script = document.createElement('script');
+                script.id = callbackName;
+                script.src = url;
+                script.onerror = function() {
+                    cleanup();
+                    reject(new Error('Falló conexión JSONP.'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        function convertGvizTableToRows(table) {
+            if (!table || !table.rows) return [];
+            const result = [];
+            table.rows.forEach(r => {
+                if (!r || !r.c) return;
+                const rowArr = [];
+                r.c.forEach((cell, idx) => {
+                    if (!cell) rowArr[idx] = '';
+                    else rowArr[idx] = (cell.f !== undefined && cell.f !== null) ? cell.f : (cell.v !== undefined && cell.v !== null ? cell.v : '');
+                });
+                result.push(rowArr);
+            });
+            return result;
+        }
+
+        async function syncGoogleSheets(silent = false) {
+            const inputEl = document.getElementById('gs-sheet-id');
+            const rawIdInput = (inputEl && inputEl.value.trim()) ? inputEl.value.trim() : DEFAULT_SHEET_URL;
+            const nameEl = document.getElementById('gs-sheet-name');
+            const sheetName = (nameEl && nameEl.value.trim()) ? nameEl.value.trim() : 'GARANTIA';
+
+            const statusMsg = document.getElementById('gs-status-message');
+            const headerIcon = document.getElementById('sync-header-icon');
+            const headerLabel = document.getElementById('sync-header-label');
+
+            if (headerIcon) headerIcon.classList.add('animate-spin');
+            if (headerLabel) headerLabel.textContent = 'Sincronizando...';
+
+            const info = extractSpreadsheetInfo(rawIdInput);
+
+            try {
+                let rowsArray = [];
+                if (info.spreadsheetId) {
+                    const table = await fetchViaJsonp(info.spreadsheetId, sheetName, info.gid);
+                    rowsArray = convertGvizTableToRows(table);
+                }
+                parseExcelRows(rowsArray);
+
+                if (!silent && statusMsg) {
+                    statusMsg.className = 'p-2.5 rounded-xl text-center font-medium bg-emerald-100 text-emerald-800 text-xs';
+                    statusMsg.textContent = `¡Sincronizado! (${rawCases.length} casos activos)`;
+                    setTimeout(() => closeGoogleSheetModal(), 1200);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                if (headerIcon) headerIcon.classList.remove('animate-spin');
+                if (headerLabel) headerLabel.textContent = 'Sincronizar Sheets';
+            }
+        }
+
+        function updateCurrentWeekIndicator() {
+            const now = new Date();
+            const { week, year } = getWeekAndYear(now);
+            const weekElem = document.getElementById('header-week-indicator');
+            if (weekElem) weekElem.textContent = `Semana ${week} | ${year}`;
+        }
+
+        function parseExcelRows(rows) {
+            if (!rows || rows.length < 2) return;
+            const parsedData = [];
+            let startRow = 1;
+
+            for (let i = 0; i < Math.min(5, rows.length); i++) {
+                const rowStr = JSON.stringify(rows[i] || []).toUpperCase();
+                if (rowStr.includes('FOLIO') || rowStr.includes('STATUS') || rowStr.includes('MARCA')) {
+                    startRow = i + 1;
+                    break;
+                }
+            }
+
+            for (let i = startRow; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                const mesIngreso = row[1] ? String(row[1]).trim() : '';
+                const folio = row[2] ? String(row[2]).trim() : '';
+                const razonSocial = row[3] ? String(row[3]).trim() : '';
+                const atendio = row[4] ? String(row[4]).trim() : 'Sin asignar';
+                const marca = row[6] ? String(row[6]).trim() : 'General';
+                const rawFechaIngreso = row[11];
+                const fechaIngreso = row[11] ? formatExcelDate(row[11]) : '-';
+                const fechaCierreST = row[17] ? formatExcelDate(row[17]) : '-';
+                const diasST = parseFloat(row[18]) || 0;
+                const promDiasST = parseFloat(row[19]) || 0;
+                const rawFechaEntregaCli = row[20];
+                const fechaEntregaCli = row[20] ? formatExcelDate(row[20]) : '-';
+                const diasEntregaCli = parseFloat(row[21]) || 0;
+                const promDiasEntregaCli = parseFloat(row[22]) || 0;
+                const asesor = row[29] ? String(row[29]).trim() : 'Sin Asesor';
+                const status = row[30] ? String(row[30]).trim() : '';
+                const comentarios = row[31] ? String(row[31]).trim() : 'Sin comentarios.';
+
+                if (!folio || !razonSocial || razonSocial.toUpperCase() === 'N/A' || !status || status.toUpperCase() === 'SIN ESTATUS') {
+                    continue;
+                }
+
+                parsedData.push({
+                    mesIngreso: mesIngreso || 'N/A',
+                    folio,
+                    razonSocial,
+                    atendio,
+                    marca,
+                    rawFechaIngreso,
+                    fechaIngreso,
+                    fechaCierreST,
+                    diasST,
+                    promDiasST,
+                    rawFechaEntregaCli,
+                    fechaEntregaCli,
+                    diasEntregaCli,
+                    promDiasEntregaCli,
+                    asesor,
+                    status,
+                    comentarios
+                });
+            }
+
+            allRawCases = parsedData;
+            rawCases = allRawCases.filter(item => isCaseActiveOrDeliveredThisWeek(item));
+            populateFilterOptions();
+            applyFilters();
+        }
+
+        function formatExcelDate(val) {
+            if (!val) return '-';
+            if (typeof val === 'number') {
+                const dateObj = new Date((val - (25567 + 2)) * 86400 * 1000);
+                return dateObj.toISOString().split('T')[0];
+            }
+            return String(val).trim();
+        }
+
+        function populateFilterOptions() {
+            const months = [...new Set(rawCases.map(c => c.mesIngreso))].filter(Boolean).sort();
+            const brands = [...new Set(rawCases.map(c => c.marca))].filter(Boolean).sort();
+            const advisors = [...new Set(rawCases.map(c => c.asesor))].filter(Boolean).sort();
+            
+            const allSubStatuses = [];
+            rawCases.forEach(c => parseStatuses(c.status).forEach(st => allSubStatuses.push(st)));
+            const statuses = [...new Set(allSubStatuses)].filter(Boolean).sort();
+
+            fillSelect('filter-month', months, 'Todos los meses');
+            fillSelect('filter-brand', brands, 'Todas las marcas');
+            fillSelect('filter-advisor', advisors, 'Todos los asesores');
+            fillSelect('filter-status', statuses, 'Todos los estatus activos');
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('filter-search').value.toLowerCase();
+            const monthVal = document.getElementById('filter-month').value;
+            const brandVal = document.getElementById('filter-brand').value;
+            const advisorVal = document.getElementById('filter-advisor').value;
+            const statusVal = document.getElementById('filter-status').value;
+
+            filteredCases = rawCases.filter(item => {
+                const matchesSearch = !searchVal || item.folio.toLowerCase().includes(searchVal) || item.razonSocial.toLowerCase().includes(searchVal);
+                const matchesMonth = !monthVal || item.mesIngreso === monthVal;
+                const matchesBrand = !brandVal || item.marca === brandVal;
+                const matchesAdvisor = !advisorVal || item.asesor === advisorVal;
+                const matchesStatus = !statusVal || parseStatuses(item.status).includes(statusVal);
+
+                return matchesSearch && matchesMonth && matchesBrand && matchesAdvisor && matchesStatus;
+            });
+
+            if (table1Sort.field) {
+                filteredCases.sort((a, b) => {
+                    let comp = (a[table1Sort.field] || '').localeCompare(b[table1Sort.field] || '', undefined, { numeric: true, sensitivity: 'base' });
+                    return table1Sort.direction === 'asc' ? comp : -comp;
+                });
+            }
+
+            updateKPIs();
+            renderCharts();
+            renderCriticalTable1();
+            renderCriticalTable2();
+            renderTable();
+        }
+
+        function updateKPIs() {
+            document.getElementById('kpi-total-active').textContent = filteredCases.length;
+
+            const over10DaysCount = filteredCases.filter(c => calculateDaysSinceEntry(c) > 10).length;
+            document.getElementById('kpi-over-10-days').textContent = over10DaysCount;
+
+            const nowWeek = getWeekAndYear(new Date());
+            const ingresadosCount = allRawCases.filter(c => {
+                const d = parseDateString(c.rawFechaIngreso || c.fechaIngreso);
+                if (!d) return false;
+                const w = getWeekAndYear(d);
+                return w.week === nowWeek.week && w.year === nowWeek.year;
+            }).length;
+            document.getElementById('kpi-ingresados').textContent = ingresadosCount;
+
+            const cerradasCount = filteredCases.filter(c => isClosedStatus(c.status)).length;
+            document.getElementById('kpi-cerradas').textContent = cerradasCount;
+
+            document.getElementById('filter-status-counter').textContent = `Mostrando ${filteredCases.length} de ${rawCases.length} casos activos`;
+        }
+
+        /* Render Tabla 1: Casos Críticos en ST */
+        function renderCriticalTable1() {
+            const tbody = document.getElementById('critical-table1-body');
+            const counterText = document.getElementById('critical-table1-count');
+            const footerText = document.getElementById('critical-table1-footer');
+            tbody.innerHTML = '';
+
+            const table1Cases = filteredCases.filter(item => calculateDaysSinceEntry(item) > 10 && !isStDatePast(item));
+
+            if (criticalTable1Sort.field) {
+                table1Cases.sort((a, b) => {
+                    let comp = 0;
+                    if (criticalTable1Sort.field === 'days') {
+                        comp = calculateDaysSinceEntry(a) - calculateDaysSinceEntry(b);
+                    } else {
+                        comp = (a[criticalTable1Sort.field] || '').localeCompare(b[criticalTable1Sort.field] || '', undefined, { numeric: true, sensitivity: 'base' });
+                    }
+                    return criticalTable1Sort.direction === 'asc' ? comp : -comp;
+                });
+            }
+
+            if (counterText) counterText.textContent = `${table1Cases.length} ${table1Cases.length === 1 ? 'Caso en ST' : 'Casos en ST'}`;
+            if (footerText) footerText.textContent = `Mostrando ${table1Cases.length} casos activos en ST con >10 días de ingreso`;
+
+            if (table1Cases.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-amber-700 bg-amber-50/50">
+                            <span class="font-bold text-xs">No hay casos críticos con Fecha de Cierre de ST en curso.</span>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            table1Cases.forEach((item) => {
+                const days = calculateDaysSinceEntry(item);
+                const originalIndex = filteredCases.indexOf(item);
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-amber-50/80 transition duration-150 border-b border-amber-100/60';
+
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-black text-amber-900 whitespace-nowrap align-middle">${escapeHTML(item.folio)}</td>
+                    <td class="py-3 px-4 font-extrabold text-slate-800 max-w-[180px] whitespace-normal break-words leading-tight align-middle">${escapeHTML(item.razonSocial)}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap align-middle">${escapeHTML(item.asesor)}</td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap align-middle">
+                        <span class="px-2.5 py-1 text-xs font-black rounded-full bg-amber-600 text-white shadow-sm inline-flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> ${days} días
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap align-middle">
+                        <button onclick="openModal(${originalIndex})" class="px-2.5 py-1 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-lg text-[11px] shadow-sm transition flex items-center gap-1 mx-auto">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                            <span>Ver Detalle</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        /* Render Tabla 2: Casos Críticos Pendientes */
+        function renderCriticalTable2() {
+            const tbody = document.getElementById('critical-table2-body');
+            const counterText = document.getElementById('critical-table2-count');
+            const footerText = document.getElementById('critical-table2-footer');
+            tbody.innerHTML = '';
+
+            const table2Cases = filteredCases.filter(item => calculateDaysSinceEntry(item) > 10 && isStDatePast(item));
+
+            if (criticalTable2Sort.field) {
+                table2Cases.sort((a, b) => {
+                    let comp = 0;
+                    if (criticalTable2Sort.field === 'days') {
+                        comp = calculateDaysSinceEntry(a) - calculateDaysSinceEntry(b);
+                    } else if (criticalTable2Sort.field === 'fechaCierreST') {
+                        const dA = parseDateString(a.fechaCierreST) || new Date(0);
+                        const dB = parseDateString(b.fechaCierreST) || new Date(0);
+                        comp = dA - dB;
+                    } else {
+                        comp = (a[criticalTable2Sort.field] || '').localeCompare(b[criticalTable2Sort.field] || '', undefined, { numeric: true, sensitivity: 'base' });
+                    }
+                    return criticalTable2Sort.direction === 'asc' ? comp : -comp;
+                });
+            }
+
+            if (counterText) counterText.textContent = `${table2Cases.length} ${table2Cases.length === 1 ? 'Caso Pendiente' : 'Casos Pendientes'}`;
+            if (footerText) footerText.textContent = `Mostrando ${table2Cases.length} casos activos pendientes con >10 días de ingreso`;
+
+            if (table2Cases.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-6 text-center text-red-600 bg-red-50/50">
+                            <span class="font-bold text-xs">No hay casos críticos pendientes con Cierre de ST transcurrido.</span>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            table2Cases.forEach((item) => {
+                const days = calculateDaysSinceEntry(item);
+                const originalIndex = filteredCases.indexOf(item);
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-red-50/80 transition duration-150 border-b border-red-100/60';
+
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-black text-red-700 whitespace-nowrap align-middle">${escapeHTML(item.folio)}</td>
+                    <td class="py-3 px-4 font-extrabold text-slate-800 max-w-[180px] whitespace-normal break-words leading-tight align-middle">${escapeHTML(item.razonSocial)}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap align-middle">${escapeHTML(item.asesor)}</td>
+                    <td class="py-3 px-4 text-center font-bold text-slate-700 whitespace-nowrap align-middle">${escapeHTML(item.fechaCierreST)}</td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap align-middle">
+                        <span class="px-2.5 py-1 text-xs font-black rounded-full bg-red-600 text-white shadow-sm inline-flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> ${days} días
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap align-middle">
+                        <button onclick="openModal(${originalIndex})" class="px-2.5 py-1 bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg text-[11px] shadow-sm transition flex items-center gap-1 mx-auto">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                            <span>Ver Detalle</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        function renderCharts() {
+            renderStatusChart();
+            renderAdvisorChart();
+        }
+
+        function renderStatusChart() {
+            const ctx = document.getElementById('chart-status').getContext('2d');
+            if (chartStatusInstance) chartStatusInstance.destroy();
+
+            const statusCounts = {};
+            filteredCases.forEach(c => {
+                parseStatuses(c.status).forEach(s => {
+                    statusCounts[s] = (statusCounts[s] || 0) + 1;
+                });
+            });
+
+            const labels = Object.keys(statusCounts);
+            const data = Object.values(statusCounts);
+
+            chartStatusInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['Sin Datos'],
+                    datasets: [{
+                        data: data.length ? data : [0],
+                        backgroundColor: '#00473e',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (evt, elements) => {
+                        if (elements.length > 0) {
+                            const clickedStatus = labels[elements[0].index];
+                            if (clickedStatus && clickedStatus !== 'Sin Datos') {
+                                openStatusCasesModal(clickedStatus);
+                            }
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } },
+                        x: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function openStatusCasesModal(statusName) {
+            const matchingCases = filteredCases.filter(c => parseStatuses(c.status).includes(statusName));
+            const listContainer = document.getElementById('status-modal-list');
+            
+            listContainer.innerHTML = matchingCases.map(c => `
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs hover:bg-slate-100 transition">
+                    <div class="space-y-0.5">
+                        <div class="font-bold text-[#00473e] text-sm">${escapeHTML(c.folio)}</div>
+                        <div class="font-semibold text-slate-800">${escapeHTML(c.razonSocial)}</div>
+                        <div class="text-[10px] text-slate-500">Asesor: ${escapeHTML(c.asesor)}</div>
+                    </div>
+                    <span class="px-2.5 py-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-lg border border-emerald-200">
+                        ${escapeHTML(statusName)}
+                    </span>
+                </div>
+            `).join('');
+
+            document.getElementById('status-modal-title').textContent = `Casos en Estatus: ${statusName} (${matchingCases.length})`;
+            document.getElementById('status-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeStatusModal() {
+            document.getElementById('status-modal').classList.add('hidden');
+        }
+
+        function renderAdvisorChart() {
+            const ctx = document.getElementById('chart-advisor').getContext('2d');
+            if (chartAdvisorInstance) chartAdvisorInstance.destroy();
+
+            const advisorCounts = {};
+            filteredCases.forEach(c => {
+                advisorCounts[c.asesor] = (advisorCounts[c.asesor] || 0) + 1;
+            });
+
+            const labels = Object.keys(advisorCounts);
+            const data = Object.values(advisorCounts);
+
+            chartAdvisorInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['Sin Datos'],
+                    datasets: [{
+                        data: data.length ? data : [0],
+                        backgroundColor: '#0284c7',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } },
+                        y: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('cases-table-body');
+            tbody.innerHTML = '';
+
+            if (filteredCases.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                            <span>No se encontraron casos de garantía activos</span>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            filteredCases.forEach((item, idx) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50/80 transition duration-150';
+
+                const statusBadges = parseStatuses(item.status).map(st => 
+                    `<span class="px-2 py-0.5 text-[10px] font-semibold rounded-md bg-blue-50 text-blue-700 border border-blue-200 inline-block w-fit">
+                        ${escapeHTML(st)}
+                    </span>`
+                ).join('');
+
+                row.innerHTML = `
+                    <td class="py-3 px-3 font-bold text-[#00473e] whitespace-nowrap align-top">${escapeHTML(item.folio)}</td>
+                    <td class="py-3 px-3 font-medium text-slate-800 max-w-[200px] leading-tight align-top">${escapeHTML(item.razonSocial)}</td>
+                    <td class="py-3 px-3 whitespace-nowrap text-slate-600 font-medium align-top">${escapeHTML(item.asesor)}</td>
+                    <td class="py-3 px-3 whitespace-nowrap align-top"><span class="px-2 py-0.5 rounded bg-slate-100 font-semibold text-slate-700 border border-slate-200">${escapeHTML(item.marca)}</span></td>
+                    <td class="py-3 px-3 text-slate-600 text-xs min-w-[250px] max-w-[400px] whitespace-normal break-words leading-relaxed align-top">${escapeHTML(item.comentarios)}</td>
+                    <td class="py-3 px-3 align-top max-w-[130px]"><div class="flex flex-col items-start gap-1">${statusBadges}</div></td>
+                    <td class="py-3 px-3 text-center whitespace-nowrap align-top">
+                        <button onclick="openModal(${idx})" class="p-1.5 hover:bg-emerald-50 rounded-lg text-[#00473e] transition">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            lucide.createIcons();
+            document.getElementById('pagination-info').textContent = `Mostrando ${filteredCases.length} de ${filteredCases.length} casos activos`;
+        }
+
+        function openModal(filteredIndex) {
+            const caseData = filteredCases[filteredIndex];
+            if (!caseData) return;
+
+            const daysSinceEntry = calculateDaysSinceEntry(caseData);
+            const isPast = isStDatePast(caseData);
+
+            document.getElementById('modal-title').textContent = `Detalle de Garantía: ${caseData.folio}`;
+
+            const content = document.getElementById('modal-content');
+            
+            const cierreStCardHTML = !isPast ? `
+                <div class="p-3 bg-amber-50 border-amber-200 rounded-xl border space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-amber-700 uppercase">Fecha Cierre ST (R)</span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold bg-amber-200 text-amber-900 rounded-md">En curso</span>
+                    </div>
+                    <div class="font-bold text-amber-900 text-sm">${escapeHTML(caseData.fechaCierreST)}</div>
+                </div>
+            ` : `
+                <div class="p-3 bg-emerald-50 border-emerald-200 rounded-xl border space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-emerald-700 uppercase">Fecha Cierre ST (R)</span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-200 text-emerald-900 rounded-md">Cerrado ST</span>
+                    </div>
+                    <div class="font-bold text-emerald-900 text-sm">${escapeHTML(caseData.fechaCierreST)}</div>
+                </div>
+            `;
+
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Razón Social (D)</span>
+                        <div class="font-bold text-slate-800 text-sm">${escapeHTML(caseData.razonSocial)}</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Estatus Activo (AE)</span>
+                        <div><span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">${escapeHTML(caseData.status)}</span></div>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Atendió el Caso (E)</span>
+                        <div class="font-medium text-slate-700">${escapeHTML(caseData.atendio)}</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Asesor (AD)</span>
+                        <div class="font-medium text-slate-700">${escapeHTML(caseData.asesor)}</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Marca (G)</span>
+                        <div class="font-medium text-slate-700">${escapeHTML(caseData.marca)}</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Fecha Ingreso (L)</span>
+                        <div class="font-medium text-slate-700">${escapeHTML(caseData.fechaIngreso)}</div>
+                    </div>
+                    <div class="p-3 ${daysSinceEntry > 10 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'} rounded-xl border space-y-1">
+                        <span class="text-[10px] font-bold ${daysSinceEntry > 10 ? 'text-red-600' : 'text-slate-400'} uppercase">Días Transcurridos desde Ingreso</span>
+                        <div class="font-extrabold ${daysSinceEntry > 10 ? 'text-red-700' : 'text-slate-800'} text-sm">${daysSinceEntry} días</div>
+                    </div>
+                    ${cierreStCardHTML}
+                </div>
+
+                <div class="p-4 bg-emerald-50/60 rounded-xl border border-emerald-100 space-y-1.5">
+                    <span class="text-[10px] font-bold text-[#00473e] uppercase tracking-wider flex items-center gap-1">
+                        <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Comentarios de Seguimiento (AF)
+                    </span>
+                    <p class="text-xs text-slate-700 leading-relaxed font-normal">${escapeHTML(caseData.comentarios)}</p>
+                </div>
+            `;
+
+            document.getElementById('case-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('case-modal').classList.add('hidden');
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
