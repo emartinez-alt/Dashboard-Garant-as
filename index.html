@@ -111,7 +111,7 @@
                     <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">CASOS ACTIVOS TOTALES</span>
                     <div class="text-2xl font-extrabold text-[#00473e] mt-0.5" id="kpi-total-active">0</div>
                     <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
-                        <i data-lucide="filter" class="w-3 h-3 text-emerald-600"></i> Excluye cerradas/canceladas
+                        <i data-lucide="filter" class="w-3 h-3 text-emerald-600"></i> Casos activos de la semana en curso
                     </p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#00473e]">
@@ -187,28 +187,28 @@
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">MES DE INGRESO (B)</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">MES DE INGRESO </label>
                     <select id="filter-month" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
                         <option value="">Todos los meses</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">MARCA (G)</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">MARCA </label>
                     <select id="filter-brand" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
                         <option value="">Todas las marcas</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ASESOR (AD)</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ASESOR </label>
                     <select id="filter-advisor" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
                         <option value="">Todos los asesores</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">STATUS ACTIVO (AE)</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ESTATUS ACTIVO </label>
                     <select id="filter-status" onchange="applyFilters()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00473e] transition">
                         <option value="">Todos los estatus activos</option>
                     </select>
@@ -1355,27 +1355,27 @@
             content.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Razón Social (D)</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Razón Social </span>
                         <div class="font-bold text-slate-800 text-sm">${escapeHTML(caseData.razonSocial)}</div>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Estatus Activo (AE)</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Estatus Activo </span>
                         <div><span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200">${escapeHTML(caseData.status)}</span></div>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Atendió el Caso (E)</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Atendió el Caso </span>
                         <div class="font-medium text-slate-700">${escapeHTML(caseData.atendio)}</div>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Asesor (AD)</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Asesor </span>
                         <div class="font-medium text-slate-700">${escapeHTML(caseData.asesor)}</div>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Equipo del caso de garantía (Modelo) (H)</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Equipo del caso de garantía (Modelo) </span>
                         <div class="font-medium text-slate-700">${escapeHTML(caseData.modelo)}</div>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Fecha Ingreso (L)</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Fecha Ingreso </span>
                         <div class="font-medium text-slate-700">${escapeHTML(caseData.fechaIngreso)}</div>
                     </div>
                     <div class="p-3 ${daysSinceEntry > 10 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'} rounded-xl border space-y-1">
