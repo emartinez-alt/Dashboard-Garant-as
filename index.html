@@ -245,33 +245,35 @@
         </section>
 
         <!-- LISTADO GENERAL DE CASOS ACTIVOS -->
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div>
-                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <i data-lucide="table" class="w-5 h-5 text-[#00473e]"></i>
-                        Listado General de Casos Activos
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Vista detallada de casos de garantía activos</p>
+        <section class="bg-gradient-to-b from-emerald-50/20 to-teal-50/20 rounded-2xl border-2 border-emerald-800/30 shadow-md overflow-hidden flex flex-col">
+            <!-- Header matching style of tables below with gradient fade and contrasts -->
+            <div class="p-4 bg-gradient-to-r from-[#00473e] via-[#005c50] to-[#003831] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-white/10 rounded-xl border border-white/20 shadow-sm">
+                        <i data-lucide="table" class="w-6 h-6 text-emerald-300"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-extrabold tracking-wide text-white uppercase flex items-center gap-2">
+                            Listado General de Casos Activos
+                        </h2>
+                        <p class="text-xs text-emerald-100 font-light">
+                            Vista detallada de casos de garantía activos
+                        </p>
+                    </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2 text-xs font-medium">
-                    <span class="text-slate-500 font-semibold mr-1">Ordenar por:</span>
-                    <button onclick="toggleSort('folio')" id="sort-folio-btn" class="bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
-                        <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-[#00473e]"></i>
-                        <span id="sort-folio-btn-label">Folio</span>
-                    </button>
-                    <button onclick="toggleSort('advisor')" id="sort-advisor-btn" class="bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition mr-2">
-                        <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-[#00473e]"></i>
-                        <span id="sort-advisor-btn-label">Asesor</span>
-                    </button>
+                <div class="flex items-center gap-2">
+                    <span class="px-3.5 py-1 bg-white text-[#00473e] font-black text-xs rounded-full shadow border border-emerald-200 flex items-center gap-1.5">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                        <span id="general-cases-count">0 Casos activos totales</span>
+                    </span>
                 </div>
             </div>
 
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="bg-[#00473e] text-white font-semibold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                        <tr class="bg-[#00473e] text-white font-semibold uppercase tracking-wider text-[11px] whitespace-nowrap border-b border-[#00332c]">
                             <th class="py-3 px-3 cursor-pointer hover:bg-[#003730] transition select-none" onclick="sortTable1('folio')">
                                 <div class="flex items-center gap-1">
                                     <span>Folio</span>
@@ -362,10 +364,11 @@
                                     <i id="t1c-sort-icon-razonSocial" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-300 opacity-60"></i>
                                 </div>
                             </th>
-                            <th class="py-3 px-4 cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('asesor')">
+                            <!-- Changed column from Asesor to Atendió el caso (Columna E) -->
+                            <th class="py-3 px-4 cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('atendio')">
                                 <div class="flex items-center gap-1">
-                                    <span>Asesor</span>
-                                    <i id="t1c-sort-icon-asesor" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-300 opacity-60"></i>
+                                    <span>Atendió el caso</span>
+                                    <i id="t1c-sort-icon-atendio" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-300 opacity-60"></i>
                                 </div>
                             </th>
                             <th class="py-3 px-4 text-center cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('days')">
@@ -698,29 +701,7 @@
             renderCriticalTable2();
         }
 
-        function toggleSort(field) {
-            sortTable1(field);
-        }
-
         function updateSortUI() {
-            const folioBtn = document.getElementById('sort-folio-btn');
-            const folioLabel = document.getElementById('sort-folio-btn-label');
-            const advisorBtn = document.getElementById('sort-advisor-btn');
-            const advisorLabel = document.getElementById('sort-advisor-btn-label');
-
-            if (folioBtn) folioBtn.className = 'bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition';
-            if (advisorBtn) advisorBtn.className = 'bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition mr-2';
-            if (folioLabel) folioLabel.textContent = 'Folio';
-            if (advisorLabel) advisorLabel.textContent = 'Asesor';
-
-            if (table1Sort.field === 'folio') {
-                if (folioLabel) folioLabel.textContent = `Folio (${table1Sort.direction === 'asc' ? 'Asc' : 'Desc'})`;
-                if (folioBtn) folioBtn.className = 'bg-emerald-50 border border-emerald-300 text-[#00473e] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition';
-            } else if (table1Sort.field === 'asesor') {
-                if (advisorLabel) advisorLabel.textContent = `Asesor (${table1Sort.direction === 'asc' ? 'A-Z' : 'Z-A'})`;
-                if (advisorBtn) advisorBtn.className = 'bg-emerald-50 border border-emerald-300 text-[#00473e] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition mr-2';
-            }
-
             const t1Fields = ['folio', 'razonSocial', 'asesor', 'marca', 'comentarios', 'status'];
             t1Fields.forEach(f => {
                 const icon = document.getElementById(`t1-sort-icon-${f}`);
@@ -734,7 +715,7 @@
                 }
             });
 
-            const t1cFields = ['folio', 'razonSocial', 'asesor', 'days'];
+            const t1cFields = ['folio', 'razonSocial', 'atendio', 'days'];
             t1cFields.forEach(f => {
                 const icon = document.getElementById(`t1c-sort-icon-${f}`);
                 if (!icon) return;
@@ -925,8 +906,9 @@
                 const mesIngreso = row[1] ? String(row[1]).trim() : '';
                 const folio = row[2] ? String(row[2]).trim() : '';
                 const razonSocial = row[3] ? String(row[3]).trim() : '';
-                const atendio = row[4] ? String(row[4]).trim() : 'Sin asignar';
+                const atendio = row[4] ? String(row[4]).trim() : 'Sin asignar'; // Columna E: Atendió el caso
                 const marca = row[6] ? String(row[6]).trim() : 'General';
+                const modelo = row[7] ? String(row[7]).trim() : 'N/A'; // Columna H: Modelo / Equipo
                 const rawFechaIngreso = row[11];
                 const fechaIngreso = row[11] ? formatExcelDate(row[11]) : '-';
                 const fechaCierreST = row[17] ? formatExcelDate(row[17]) : '-';
@@ -950,6 +932,7 @@
                     razonSocial,
                     atendio,
                     marca,
+                    modelo,
                     rawFechaIngreso,
                     fechaIngreso,
                     fechaCierreST,
@@ -1045,6 +1028,11 @@
             document.getElementById('kpi-cerradas').textContent = cerradasCount;
 
             document.getElementById('filter-status-counter').textContent = `Mostrando ${filteredCases.length} de ${rawCases.length} casos activos`;
+            
+            const generalCasesCountEl = document.getElementById('general-cases-count');
+            if (generalCasesCountEl) {
+                generalCasesCountEl.textContent = `${filteredCases.length} ${filteredCases.length === 1 ? 'Caso activo total' : 'Casos activos totales'}`;
+            }
         }
 
         /* Render Tabla 1: Casos Críticos en ST */
@@ -1092,7 +1080,7 @@
                 row.innerHTML = `
                     <td class="py-3 px-4 font-black text-amber-900 whitespace-nowrap align-middle">${escapeHTML(item.folio)}</td>
                     <td class="py-3 px-4 font-extrabold text-slate-800 max-w-[180px] whitespace-normal break-words leading-tight align-middle">${escapeHTML(item.razonSocial)}</td>
-                    <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap align-middle">${escapeHTML(item.asesor)}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap align-middle">${escapeHTML(item.atendio)}</td>
                     <td class="py-3 px-4 text-center whitespace-nowrap align-middle">
                         <span class="px-2.5 py-1 text-xs font-black rounded-full bg-amber-600 text-white shadow-sm inline-flex items-center gap-1">
                             <i data-lucide="clock" class="w-3 h-3"></i> ${days} días
@@ -1383,8 +1371,8 @@
                         <div class="font-medium text-slate-700">${escapeHTML(caseData.asesor)}</div>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Marca (G)</span>
-                        <div class="font-medium text-slate-700">${escapeHTML(caseData.marca)}</div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Equipo del caso de garantía (Modelo) (H)</span>
+                        <div class="font-medium text-slate-700">${escapeHTML(caseData.modelo)}</div>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Fecha Ingreso (L)</span>
