@@ -77,7 +77,7 @@
                     <p class="text-xs text-emerald-100/80 font-light flex items-center gap-1.5">
                         <span>Soporte Técnico | Corey Solar</span>
                         <span>•</span>
-                        <span class="inline-flex items-center text-emerald-300 font-medium">Casos activos</span>
+                        <span class="inline-flex items-center text-emerald-300 font-medium">Casos activos y cerrados</span>
                     </p>
                 </div>
             </div>
@@ -246,7 +246,6 @@
 
         <!-- LISTADO GENERAL DE CASOS ACTIVOS -->
         <section class="bg-gradient-to-b from-emerald-50/20 to-teal-50/20 rounded-2xl border-2 border-emerald-800/30 shadow-md overflow-hidden flex flex-col">
-            <!-- Header matching style of tables below with gradient fade and contrasts -->
             <div class="p-4 bg-gradient-to-r from-[#00473e] via-[#005c50] to-[#003831] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
                 <div class="flex items-center space-x-3">
                     <div class="p-2 bg-white/10 rounded-xl border border-white/20 shadow-sm">
@@ -336,7 +335,7 @@
                             Casos Críticos en ST
                         </h2>
                         <p class="text-xs text-amber-100 font-light">
-                            Casos pendientes de resolución de ST de Corey Solar
+                            Casos pendientes de resolución de ST de Corey Solar (excluye cerrados/cancelados/rechazados)
                         </p>
                     </div>
                 </div>
@@ -364,7 +363,6 @@
                                     <i id="t1c-sort-icon-razonSocial" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-300 opacity-60"></i>
                                 </div>
                             </th>
-                            <!-- Changed column from Asesor to Atendió el caso (Columna E) -->
                             <th class="py-3 px-4 cursor-pointer hover:bg-amber-950 transition select-none" onclick="sortCriticalTable1('atendio')">
                                 <div class="flex items-center gap-1">
                                     <span>Atendió el caso</span>
@@ -402,7 +400,7 @@
                             Casos Críticos pendientes
                         </h2>
                         <p class="text-xs text-red-100 font-light">
-                            Casos pendientes (Resolución fabricante / envío proveedor / disponibilidad)
+                            Casos pendientes (Resolución fabricante / envío proveedor / disponibilidad) (excluye cerrados/cancelados/rechazados)
                         </p>
                     </div>
                 </div>
@@ -458,6 +456,83 @@
             
             <div id="critical-table2-footer" class="p-2.5 bg-red-100/50 border-t border-red-200 text-xs text-red-800 text-right font-medium pr-4">
                 Mostrando 0 casos
+            </div>
+        </section>
+
+        <!-- TABLA 3: CASOS CERRADOS (TONOS AZULES) -->
+        <section class="bg-gradient-to-b from-blue-50 to-sky-50/40 rounded-2xl border-2 border-blue-500/40 shadow-md overflow-hidden flex flex-col">
+            <div class="p-4 bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-white/10 rounded-xl border border-white/20 shadow-sm">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-blue-200"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-extrabold tracking-wide text-white uppercase flex items-center gap-2">
+                            Casos cerrados
+                        </h2>
+                        <p class="text-xs text-blue-100 font-light">
+                            Casos que durante la semana en curso fueron cerrados exitosamente, cancelados o rechazados
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-3.5 py-1 bg-white text-blue-900 font-black text-xs rounded-full shadow border border-blue-200 flex items-center gap-1.5">
+                        <i data-lucide="archive" class="w-4 h-4 text-blue-600"></i>
+                        <span id="closed-cases-count">0 Casos Cerrados</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-blue-950 text-blue-100 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap border-b border-blue-900">
+                            <th class="py-3 px-4 cursor-pointer hover:bg-blue-900 transition select-none" onclick="sortClosedTable('folio')">
+                                <div class="flex items-center gap-1">
+                                    <span>Folio</span>
+                                    <i id="closed-sort-icon-folio" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-blue-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 max-w-[200px] cursor-pointer hover:bg-blue-900 transition select-none" onclick="sortClosedTable('razonSocial')">
+                                <div class="flex items-center gap-1">
+                                    <span>Razón Social</span>
+                                    <i id="closed-sort-icon-razonSocial" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-blue-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-blue-900 transition select-none" onclick="sortClosedTable('atendio')">
+                                <div class="flex items-center gap-1">
+                                    <span>Atendió el caso</span>
+                                    <i id="closed-sort-icon-atendio" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-blue-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-blue-900 transition select-none" onclick="sortClosedTable('asesor')">
+                                <div class="flex items-center gap-1">
+                                    <span>Asesor</span>
+                                    <i id="closed-sort-icon-asesor" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-blue-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center cursor-pointer hover:bg-blue-900 transition select-none" onclick="sortClosedTable('fechaEntregaCli')">
+                                <div class="flex items-center justify-center gap-1">
+                                    <span>Fecha de Cierre</span>
+                                    <i id="closed-sort-icon-fechaEntregaCli" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-blue-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-blue-900 transition select-none" onclick="sortClosedTable('status')">
+                                <div class="flex items-center gap-1">
+                                    <span>Estatus de Cierre</span>
+                                    <i id="closed-sort-icon-status" data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-blue-300 opacity-60"></i>
+                                </div>
+                            </th>
+                            <th class="py-3 px-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="closed-table-body" class="divide-y divide-blue-100 bg-white">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="closed-table-footer" class="p-2.5 bg-blue-100/60 border-t border-blue-200 text-xs text-blue-900 text-right font-medium pr-4">
+                Mostrando 0 casos cerrados
             </div>
         </section>
 
@@ -570,6 +645,7 @@
         let table1Sort = { field: null, direction: 'asc' };
         let criticalTable1Sort = { field: 'days', direction: 'desc' };
         let criticalTable2Sort = { field: 'days', direction: 'desc' };
+        let closedTableSort = { field: 'fechaEntregaCli', direction: 'desc' };
 
         /* Chart Instances */
         let chartStatusInstance = null;
@@ -701,6 +777,17 @@
             renderCriticalTable2();
         }
 
+        function sortClosedTable(field) {
+            if (closedTableSort.field === field) {
+                closedTableSort.direction = closedTableSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                closedTableSort.field = field;
+                closedTableSort.direction = 'asc';
+            }
+            updateSortUI();
+            renderClosedTable();
+        }
+
         function updateSortUI() {
             const t1Fields = ['folio', 'razonSocial', 'asesor', 'marca', 'comentarios', 'status'];
             t1Fields.forEach(f => {
@@ -741,6 +828,19 @@
                 }
             });
 
+            const closedFields = ['folio', 'razonSocial', 'atendio', 'asesor', 'fechaEntregaCli', 'status'];
+            closedFields.forEach(f => {
+                const icon = document.getElementById(`closed-sort-icon-${f}`);
+                if (!icon) return;
+                if (closedTableSort.field === f) {
+                    icon.setAttribute('data-lucide', closedTableSort.direction === 'asc' ? 'arrow-up' : 'arrow-down');
+                    icon.className = 'w-3.5 h-3.5 text-white font-bold opacity-100';
+                } else {
+                    icon.setAttribute('data-lucide', 'arrow-up-down');
+                    icon.className = 'w-3.5 h-3.5 text-blue-300 opacity-60';
+                }
+            });
+
             lucide.createIcons();
         }
 
@@ -754,6 +854,7 @@
             table1Sort = { field: null, direction: 'asc' };
             criticalTable1Sort = { field: 'days', direction: 'desc' };
             criticalTable2Sort = { field: 'days', direction: 'desc' };
+            closedTableSort = { field: 'fechaEntregaCli', direction: 'desc' };
             updateSortUI();
             applyFilters();
         }
@@ -914,7 +1015,7 @@
                 const fechaCierreST = row[17] ? formatExcelDate(row[17]) : '-';
                 const diasST = parseFloat(row[18]) || 0;
                 const promDiasST = parseFloat(row[19]) || 0;
-                const rawFechaEntregaCli = row[20];
+                const rawFechaEntregaCli = row[20]; // Columna U: entrega a cliente / fecha de cierre
                 const fechaEntregaCli = row[20] ? formatExcelDate(row[20]) : '-';
                 const diasEntregaCli = parseFloat(row[21]) || 0;
                 const promDiasEntregaCli = parseFloat(row[22]) || 0;
@@ -1006,13 +1107,14 @@
             renderCharts();
             renderCriticalTable1();
             renderCriticalTable2();
+            renderClosedTable();
             renderTable();
         }
 
         function updateKPIs() {
             document.getElementById('kpi-total-active').textContent = filteredCases.length;
 
-            const over10DaysCount = filteredCases.filter(c => calculateDaysSinceEntry(c) > 10).length;
+            const over10DaysCount = filteredCases.filter(c => calculateDaysSinceEntry(c) > 10 && !isClosedStatus(c.status)).length;
             document.getElementById('kpi-over-10-days').textContent = over10DaysCount;
 
             const nowWeek = getWeekAndYear(new Date());
@@ -1035,14 +1137,18 @@
             }
         }
 
-        /* Render Tabla 1: Casos Críticos en ST */
+        /* Render Tabla 1: Casos Críticos en ST (Excluye casos cerrados/cancelados/rechazados) */
         function renderCriticalTable1() {
             const tbody = document.getElementById('critical-table1-body');
             const counterText = document.getElementById('critical-table1-count');
             const footerText = document.getElementById('critical-table1-footer');
             tbody.innerHTML = '';
 
-            const table1Cases = filteredCases.filter(item => calculateDaysSinceEntry(item) > 10 && !isStDatePast(item));
+            const table1Cases = filteredCases.filter(item => 
+                calculateDaysSinceEntry(item) > 10 && 
+                !isStDatePast(item) && 
+                !isClosedStatus(item.status)
+            );
 
             if (criticalTable1Sort.field) {
                 table1Cases.sort((a, b) => {
@@ -1098,14 +1204,18 @@
             lucide.createIcons();
         }
 
-        /* Render Tabla 2: Casos Críticos Pendientes */
+        /* Render Tabla 2: Casos Críticos Pendientes (Excluye casos cerrados/cancelados/rechazados) */
         function renderCriticalTable2() {
             const tbody = document.getElementById('critical-table2-body');
             const counterText = document.getElementById('critical-table2-count');
             const footerText = document.getElementById('critical-table2-footer');
             tbody.innerHTML = '';
 
-            const table2Cases = filteredCases.filter(item => calculateDaysSinceEntry(item) > 10 && isStDatePast(item));
+            const table2Cases = filteredCases.filter(item => 
+                calculateDaysSinceEntry(item) > 10 && 
+                isStDatePast(item) && 
+                !isClosedStatus(item.status)
+            );
 
             if (criticalTable2Sort.field) {
                 table2Cases.sort((a, b) => {
@@ -1158,6 +1268,76 @@
                         <button onclick="openModal(${originalIndex})" class="px-2.5 py-1 bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg text-[11px] shadow-sm transition flex items-center gap-1 mx-auto">
                             <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                             <span>Ver Detalle</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        /* Render Tabla 3: Casos Cerrados (Tonos Azules) */
+        function renderClosedTable() {
+            const tbody = document.getElementById('closed-table-body');
+            const counterText = document.getElementById('closed-cases-count');
+            const footerText = document.getElementById('closed-table-footer');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            const closedCases = filteredCases.filter(item => isClosedStatus(item.status));
+
+            if (closedTableSort.field) {
+                closedCases.sort((a, b) => {
+                    let comp = 0;
+                    if (closedTableSort.field === 'fechaEntregaCli') {
+                        const dA = parseDateString(a.rawFechaEntregaCli || a.fechaEntregaCli) || new Date(0);
+                        const dB = parseDateString(b.rawFechaEntregaCli || b.fechaEntregaCli) || new Date(0);
+                        comp = dA - dB;
+                    } else {
+                        comp = (a[closedTableSort.field] || '').localeCompare(b[closedTableSort.field] || '', undefined, { numeric: true, sensitivity: 'base' });
+                    }
+                    return closedTableSort.direction === 'asc' ? comp : -comp;
+                });
+            }
+
+            if (counterText) counterText.textContent = `${closedCases.length} ${closedCases.length === 1 ? 'Caso Cerrado' : 'Casos Cerrados'}`;
+            if (footerText) footerText.textContent = `Mostrando ${closedCases.length} casos cerrados, cancelados o rechazados`;
+
+            if (closedCases.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-6 text-center text-blue-700 bg-blue-50/50">
+                            <span class="font-bold text-xs">No hay casos cerrados, cancelados o rechazados en este periodo.</span>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            closedCases.forEach((item) => {
+                const originalIndex = filteredCases.indexOf(item);
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-blue-50/80 transition duration-150 border-b border-blue-100/70';
+
+                const statusBadges = parseStatuses(item.status).map(st => 
+                    `<span class="px-2 py-0.5 text-[10px] font-semibold rounded-md bg-blue-100 text-blue-800 border border-blue-200 inline-block w-fit">
+                        ${escapeHTML(st)}
+                    </span>`
+                ).join('');
+
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-black text-blue-900 whitespace-nowrap align-middle">${escapeHTML(item.folio)}</td>
+                    <td class="py-3 px-4 font-extrabold text-slate-800 max-w-[200px] whitespace-normal break-words leading-tight align-middle">${escapeHTML(item.razonSocial)}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap align-middle">${escapeHTML(item.atendio)}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap align-middle">${escapeHTML(item.asesor)}</td>
+                    <td class="py-3 px-4 text-center font-bold text-blue-800 whitespace-nowrap align-middle">${escapeHTML(item.fechaEntregaCli)}</td>
+                    <td class="py-3 px-4 align-middle"><div class="flex flex-col items-start gap-1">${statusBadges}</div></td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap align-middle">
+                        <button onclick="openModal(${originalIndex})" class="px-2.5 py-1 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg text-[11px] shadow-sm transition flex items-center gap-1 mx-auto">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                            <span>Ver detalle</span>
                         </button>
                     </td>
                 `;
@@ -1310,7 +1490,7 @@
                     <td class="py-3 px-3 text-slate-600 text-xs min-w-[250px] max-w-[400px] whitespace-normal break-words leading-relaxed align-top">${escapeHTML(item.comentarios)}</td>
                     <td class="py-3 px-3 align-top max-w-[130px]"><div class="flex flex-col items-start gap-1">${statusBadges}</div></td>
                     <td class="py-3 px-3 text-center whitespace-nowrap align-top">
-                        <button onclick="openModal(${idx})" class="p-1.5 hover:bg-emerald-50 rounded-lg text-[#00473e] transition">
+                        <button onclick="openModal(${idx})" class="p-1.5 hover:bg-emerald-50 rounded-lg text-[#00473e] transition" title="Ver detalle">
                             <i data-lucide="eye" class="w-4 h-4"></i>
                         </button>
                     </td>
@@ -1377,6 +1557,10 @@
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Fecha Ingreso </span>
                         <div class="font-medium text-slate-700">${escapeHTML(caseData.fechaIngreso)}</div>
+                    </div>
+                    <div class="p-3 bg-blue-50 border-blue-200 rounded-xl border space-y-1">
+                        <span class="text-[10px] font-bold text-blue-700 uppercase">Fecha de Cierre / Entrega Cliente (U)</span>
+                        <div class="font-bold text-blue-900 text-sm">${escapeHTML(caseData.fechaEntregaCli)}</div>
                     </div>
                     <div class="p-3 ${daysSinceEntry > 10 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'} rounded-xl border space-y-1">
                         <span class="text-[10px] font-bold ${daysSinceEntry > 10 ? 'text-red-600' : 'text-slate-400'} uppercase">Días Transcurridos desde Ingreso</span>
